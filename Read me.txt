@@ -1,0 +1,3 @@
+start python web server by using below 
+
+python -m http.server 8000 

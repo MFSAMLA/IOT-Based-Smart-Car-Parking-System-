@@ -1,0 +1,130 @@
+{
+  "data": {
+    "floor1": {
+      "gates": {
+        "entry": {
+          "isActive": true,
+          "mode": "AUTO"
+        },
+        "exit": {
+          "isActive": false,
+          "mode": "MANUAL"
+        }
+      },
+      "sensorData": {
+        "availableSpots": 45,
+        "totalSpots": 100,
+        "reservedSpots": 5
+      },
+      "settings": {
+        "capacity": {
+          "total": 100,
+          "reserved": 10
+        }
+      }
+    },
+    "floor2": {
+      "gates": {
+        "entry": {
+          "isActive": false,
+          "mode": "MANUAL"
+        },
+        "exit": {
+          "isActive": false,
+          "mode": "MANUAL"
+        }
+      },
+      "sensorData": {
+        "availableSpots": 78,
+        "totalSpots": 150,
+        "reservedSpots": 12
+      },
+      "settings": {
+        "capacity": {
+          "total": 150,
+          "reserved": 15
+        }
+      }
+    }
+  },
+  "system": {
+    "connection": "OK"
+  },
+  "users": {
+    "admin": {
+      "password": "admin123",
+      "role": "admin"
+    },
+    "operator": {
+      "password": "operator123",
+      "role": "operator"
+    },
+    "samla": {
+      "password": "samla123",
+      "role": "operator"
+    },
+    "humaira": {
+      "password": "humaira123",
+      "role": "operator"
+    },
+    "wazny": {
+      "password": "wazny123",
+      "role": "operator"
+    }
+  },
+  "parking": {
+    "zones": {
+      "zone1": {
+        "slots": {
+    "1": "available",
+    "2": "occupied",
+    "3": "reserved"
+  },
+  "reservation": {
+    "status": "Reserved",
+    "slot": "3",
+    "user": "mohammed",
+    "expiresAt": "2025-06-23T10:45:00Z",
+    "paid": {
+          "amount": 250,
+          "timestamp": "2025-06-23T10:30:00Z"
+        }
+  },
+  "vehicleCount": 5,
+  "availableSlots": 15,
+  "capacity":20,
+  "barrierStatus": "Closed",
+  "evSlots": {
+    "total": 5,
+    "available": 3,
+    "charging": 2
+  }
+      },
+      "zone2": {
+        "slots": {
+    "1": "available",
+    "2": "reserved"
+  },
+  "reservation": {
+    "status": "Reserved",
+    "slot": "2",
+    "user": "mohammed",
+    "expiresAt": "2025-06-30T10:45:00Z",
+    "paid": {
+          "amount": 250,
+          "timestamp": "2025-06-30T10:30:00Z"
+        }
+  },
+  "vehicleCount": 3,
+  "availableSlots": 17,
+  "capacity":20,
+  "barrierStatus": "Open",
+  "evSlots": {
+    "total": 4,
+    "available": 2,
+    "charging": 2
+  }
+      }
+    }
+  }
+}
