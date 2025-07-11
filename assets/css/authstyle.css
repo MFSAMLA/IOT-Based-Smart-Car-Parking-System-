@@ -1,0 +1,82 @@
+/* login ui */
+
+* {
+  transition: 0.3s !important ;
+}
+
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+   
+
+    .left-section {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .brand-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fbe604;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .divider {
+      border-right: 1px solid #ddd;
+      height: 80%;
+      position: absolute;
+    }
+
+    .right-section {
+      padding: 20px;
+    }
+
+    .login-title {
+      font-weight: bold;
+      color: #fbe604;
+      margin-bottom: 10px;
+    }
+
+    .form-control {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .form-control:focus {
+      box-shadow: none;
+      border-color: #fbe604;
+    }
+
+    .link {
+      color: #fbe604;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .btn-primary {
+      background-color: #fbe604;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+    }
+
+    .btn-primary:hover {
+      background-color: #a39603;
+    }
+
+    .btn-primary:active {
+      background-color: #433e01 !important;
+    }

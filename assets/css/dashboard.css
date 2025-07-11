@@ -1,0 +1,68 @@
+:root {
+  --dark-slate-gray: rgb(113, 113, 65);
+  --myrtle-green: rgb(120, 125, 56);
+  --sea-green: rgb(136, 147, 50);
+  --jade: rgb(169, 158, 38);
+  --kelly-green: rgb(192, 181, 22);
+
+  --pakistan-green: rgb(70, 68, 17);
+  --india-green: rgb(137, 131, 20);
+  --pigment-green: rgb(163, 154, 61);
+  --light-green: rgb(224, 220, 114);
+  --nyanza: #e8fccfff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/* Modern Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light background for the track */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(96, 96, 96); /* Gradient color */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ccc911; /* Gradient color */
+}
+
+.profile img {
+  width: 50px;
+}
+
+.sidebar-btn {
+  margin: 1rem 0;
+  border: 0;
+  font-size: 1.5rem;
+  transition: background 0.3s, color 0.3s;
+  color: white;
+}
+
+.sidebar-btn.active,
+.sidebar-btn:hover {
+  color: var(--kelly-green);
+  text-shadow: var(--jade) 0px 0px 18px;
+}
+
+.btn-quick-action {
+    background-color: var(--sea-green);
+    color: white;
+    border: 0;
+}
+
+.tooltip {
+    --bs-tooltip-bg: var(--kelly-green);
+    --bs-tooltip-color: var(--bs-white);
+  }
+
+ 
