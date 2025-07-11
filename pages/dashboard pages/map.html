@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPMS - Parking map</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../../assets/css/dashboard.css">
+  <link rel="shortcut icon" href="/assets/img/carlogo.png">
+  <style>
+    .slot-card {
+      min-width: 100px;
+      min-height: 90px;
+      font-size: 1rem;
+    }
+
+    .occupied {
+      background-color: #dc3545 !important;
+      color: white;
+    }
+
+    .available {
+      background-color: #28a745 !important;
+      color: white;
+    }
+
+    .reserved {
+      background-color: #0d6efd !important;
+      color: white;
+    }
+
+    .legend span {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="d-flex vh-100">
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark text-white d-flex flex-column align-items-center px-2 py-3">
+      <div class="profile text-center">
+        <img src="/assets/img/profile2.jpg" alt="User" class="rounded-circle mb-2 p-1">
+      </div>
+      <hr>
+      <nav class="nav flex-column text-center w-100">
+        <a id="dashboardLink" class="btn sidebar-btn active" title="Dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+        </a>
+        <a href="/pages/dashboard pages/map.html" class="btn sidebar-btn" title="Parking Map">
+          <i class="fas fa-map-marked-alt"></i>
+        </a>
+        <a href="/pages/dashboard pages/reservation.html" class="btn sidebar-btn" title="Reservation">
+          <i class="fas fa-calendar-check"></i>
+        </a>
+        <a href="/pages/dashboard pages/payment.html" class="btn sidebar-btn" title="Payment">
+          <i class="fas fa-credit-card"></i>
+        </a>
+
+      </nav>
+    </div>
+    <!-- Main Content -->
+    <div class="content w-100 px-4 py-1 overflow-y-scroll bg-body-secondary">
+      <div
+        class="d-flex justify-content-between align-items-center mb-2 bg-white position-sticky sticky-top rounded-4 shadow-sm px-4">
+        <h2 class="m-0 fw-bold">
+          <img src="/assets/img/carlogo.png" alt="smart-parking-logo" style="width: 5.5rem;" class="m-0 me-4">Parking
+          Maps
+        </h2>
+        <h5 id="username"></h5>
+      </div>
+      <div class="container py-4">
+        <h2 class="text-center mb-4">🅿️ Real-Time Parking Map</h2>
+
+        <div class="text-center mb-3 legend">
+          <span style="background:#28a745"></span> Available
+          <span style="background:#dc3545" class="ms-3"></span> Occupied
+          <span style="background:#0d6efd" class="ms-3"></span> Reserved
+        </div>
+
+        <div id="zoneMapContainer"></div>
+      </div>
+
+
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+      <script>
+        const username = localStorage.getItem('userToken');
+        const currentUser = document.getElementById("username");
+        currentUser.innerText = "Welcome " + username + " !";
+      </script>
+
+      <script>
+        const role = localStorage.getItem("userRole");
+        const dashboardLink = document.getElementById("dashboardLink");
+
+        if (role === "admin") {
+          dashboardLink.href = "/pages/admin.html";  //  admin path
+        } else {
+          dashboardLink.href = "/pages/dashboard.html";
+        }
+      </script>
+
+      <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+
+        const app = initializeApp({
+          apiKey: "AIzaSyA9SUqwXpS8YimNZv3UYPXXpeEsphCuG-M",
+          authDomain: "smart-car-parking-system-7af9d.firebaseapp.com",
+          databaseURL: "https://smart-car-parking-system-7af9d-default-rtdb.firebaseio.com",
+          projectId: "smart-car-parking-system-7af9d",
+          storageBucket: "smart-car-parking-system-7af9d.appspot.com",
+          messagingSenderId: "896877454784",
+          appId: "1:896877454784:web:b1f651166a1190c530d425"
+        });
+
+        const db = getDatabase(app);
+        const zoneMapContainer = document.getElementById("zoneMapContainer");
+        const totalZones = 2;
+        const slotsPerZone = 20;
+
+        for (let z = 1; z <= totalZones; z++) {
+          const zoneDiv = document.createElement("div");
+          zoneDiv.className = "mb-4";
+          zoneDiv.innerHTML = `
+        <h4>Zone ${z}</h4>
+        <div class="row row-cols-2 row-cols-md-5 g-3" id="zone${z}Slots"></div>
+      `;
+          zoneMapContainer.appendChild(zoneDiv);
+
+          const slotContainer = document.getElementById(`zone${z}Slots`);
+          for (let s = 1; s <= slotsPerZone; s++) {
+            const slotId = `Z${z}_S${s}`;
+            const card = document.createElement("div");
+            card.className = `col`;
+            card.innerHTML = `
+          <div id="${slotId}" class="card slot-card text-center border">
+            <div class="card-body p-2">
+              Slot ${s}
+              <div class="status-text small mt-2"></div>
+            </div>
+          </div>
+        `;
+            slotContainer.appendChild(card);
+          }
+
+          const slotRef = ref(db, `parking/zones/zone${z}/slots`);
+          onValue(slotRef, (snapshot) => {
+            const slotData = snapshot.val();
+            if (slotData) {
+              Object.entries(slotData).forEach(([slotNum, status]) => {
+                const slotEl = document.getElementById(`Z${z}_S${slotNum}`);
+                if (!slotEl) return;
+
+                const statusText = slotEl.querySelector(".status-text");
+
+                slotEl.classList.remove("available", "occupied", "reserved");
+
+                if (status === "available") {
+                  slotEl.classList.add("available");
+                  statusText.innerText = "🟢 Available";
+                } else if (status === "occupied") {
+                  slotEl.classList.add("occupied");
+                  statusText.innerText = "🔴 Occupied";
+                } else if (status === "reserved") {
+                  slotEl.classList.add("reserved");
+                  statusText.innerText = "🔵 Reserved";
+                }
+
+              });
+            }
+          });
+        }
+      </script>
+</body>
+
+</html>

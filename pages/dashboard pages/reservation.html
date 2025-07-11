@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Parking | Reservation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="shortcut icon" href="/assets/img/carlogo.png">
+</head>
+
+<body class="bg-light">
+  <div class="d-flex vh-100">
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark text-white d-flex flex-column align-items-center px-2 py-3">
+      <div class="profile text-center">
+        <img src="/assets/img/profile2.jpg" alt="User" class="rounded-circle mb-2 p-1">
+      </div>
+      <hr>
+      <nav class="nav flex-column text-center w-100">
+                <a id="dashboardLink" class="btn sidebar-btn active" title="Dashboard">
+                  <i class="fas fa-tachometer-alt"></i>
+              </a>
+
+        <a href="/pages/dashboard pages/map.html" class="btn sidebar-btn" title="Parking Map">
+          <i class="fas fa-map-marked-alt"></i>
+        </a>
+        <a href="/pages/dashboard pages/reservation.html" class="btn sidebar-btn" title="Reservation">
+          <i class="fas fa-calendar-check"></i>
+        </a>
+        <a href="/pages/dashboard pages/payment.html" class="btn sidebar-btn" title="Payment">
+          <i class="fas fa-credit-card"></i>
+        </a>
+        
+      </nav>
+    </div>
+    <!-- Main Content -->
+    <div class="content w-100 px-4 py-1 overflow-y-scroll bg-body-secondary">
+      <div class="d-flex justify-content-between align-items-center mb-2 bg-white position-sticky sticky-top rounded-4 shadow-sm px-4">
+        <h2 class="m-0 fw-bold">
+          <img src="/assets/img/carlogo.png" alt="smart-parking-logo" style="width: 5.5rem;" class="m-0 me-4">Parking Slot Reservations
+        </h2><h5 id="username"></h5>
+      </div>
+
+<div class="container py-4">
+    <h2 class="text-center mb-4"></h2>
+
+    <!-- Reservation Cards -->
+   <div class="row justify-content-center" id="zoneCards"></div>
+
+    <hr class="my-5"/>
+
+    <h4 class="text-center">🔍 Reservation Summary</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered mt-3 text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Zone</th>
+            <th>Status</th>
+            <th>Reserved By</th>
+            <th>Slot</th>
+            <th>Expires At</th>
+          </tr>
+        </thead>
+        <tbody id="reservationTable">
+          <!-- Live Data -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+ 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const username = localStorage.getItem('userToken');
+    const currentUser = document.getElementById("username");
+    currentUser.innerText = "Welcome " + username + " !";
+
+  </script>
+   <script>
+  const role = localStorage.getItem("userRole");
+  const dashboardLink = document.getElementById("dashboardLink");
+
+  if (role === "admin") {
+    dashboardLink.href = "/pages/admin.html";  //  admin path
+  } else {
+    dashboardLink.href = "/pages/dashboard.html";
+  }
+</script>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyA9SUqwXpS8YimNZv3UYPXXpeEsphCuG-M",
+    authDomain: "smart-car-parking-system-7af9d.firebaseapp.com",
+    databaseURL: "https://smart-car-parking-system-7af9d-default-rtdb.firebaseio.com",
+    projectId: "smart-car-parking-system-7af9d",
+    storageBucket: "smart-car-parking-system-7af9d.appspot.com",
+    messagingSenderId: "896877454784",
+    appId: "1:896877454784:web:b1f651166a1190c530d425",
+    measurementId: "G-326JL3R7WH"
+  };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const zones = [1, 2];
+    
+    // Check for expired reservations every minute
+setInterval(() => {
+  zones.forEach(async (zone) => {
+    const zoneRef = ref(db, `parking/zones/zone${zone}`);
+    const snapshot = await get(zoneRef);
+    const data = snapshot.val();
+
+    if (!data || !data.reservation) return;
+
+    const { status, expiresAt, slot } = data.reservation;
+
+    // If reserved and expiration time has passed
+    if (
+      status === "Reserved" &&
+      expiresAt &&
+      new Date(expiresAt) < new Date()
+    ) {
+      console.log(`Reservation expired in zone ${zone}, slot ${slot}`);
+
+      // Reset reservation
+      update(zoneRef, {
+        "reservation/status": "Available",
+        "reservation/user": "",
+        "reservation/slot": "",
+        "reservation/expiresAt": "",
+        [`slots/${slot}`]: "available"
+      });
+    }
+  });
+}, 60 * 1000); // Every 60 seconds
+
+    const zoneCards = document.getElementById("zoneCards");
+    const reservationTable = document.getElementById("reservationTable");
+
+    function formatTime(iso) {
+      if (!iso) return "-";
+      const date = new Date(iso);
+      return date.toLocaleString();
+    }
+
+    // UI for each zone
+    zones.forEach(zone => {
+      const zoneDiv = document.createElement("div");
+      zoneDiv.className = "col-md-5 mb-4";
+      zoneDiv.innerHTML = `
+        <div class="card shadow">
+          <div class="card-body">
+            <h4>Zone ${zone}</h4>
+           <p>Status: <span id="reservationStatusZ${zone}" class="fw-bold text-primary">Loading...</span></p>
+            <p>User: <span id="reservationUserZ${zone}" class="text-secondary">-</span></p>
+            <p>Slot No: <span id="reservationSlotZ${zone}" class="text-dark">-</span></p>
+            <p>Expires At: <span id="reservationExpiryZ${zone}" class="text-muted">-</span></p>
+
+            <button id="toggleReservationZ${zone}" class="btn btn-outline-primary">Checking...</button>
+          </div>
+        </div>
+      `;
+      zoneCards.appendChild(zoneDiv);
+
+      const zoneRef = ref(db, `parking/zones/zone${zone}/reservation`);
+
+
+      onValue(zoneRef, (snapshot) => {
+        const data = snapshot.val();
+        const statusSpan = document.getElementById(`reservationStatusZ${zone}`);
+        const userSpan = document.getElementById(`reservationUserZ${zone}`);
+        const slotSpan = document.getElementById(`reservationSlotZ${zone}`);
+        const expiresSpan = document.getElementById(`reservationExpiryZ${zone}`);
+        const button = document.getElementById(`toggleReservationZ${zone}`);
+
+        if (!data) return;
+
+        // UI Update
+        const role = localStorage.getItem("userRole");
+const currentUser = localStorage.getItem("userToken");
+
+statusSpan.innerText = data.status;
+userSpan.innerText = data.user || "-";
+slotSpan.innerText = data.slot || "-";
+expiresSpan.innerText = data.expiresAt ? formatTime(data.expiresAt) : "-";
+
+// Button label and permissions
+if (data.status === "Reserved") {
+  if (data.user === currentUser || role === "admin") {
+    button.innerText = "Cancel Reservation";
+    button.className = "btn btn-outline-danger";
+    button.disabled = false;
+  } else {
+    button.innerText = "Reserved (Locked)";
+    button.className = "btn btn-secondary";
+    button.disabled = true;
+  }
+} else {
+  button.innerText = "Reserve Slot";
+  button.className = "btn btn-outline-primary";
+  button.disabled = false;
+}
+
+
+
+        // Summary Table
+        renderSummary();
+      });
+
+
+      document.getElementById(`toggleReservationZ${zone}`).addEventListener("click", async () => {
+        const snap = await get(zoneRef);
+        const data = snap.val();
+        const currentUser = localStorage.getItem("userToken");
+        const role = localStorage.getItem("userRole");
+        if (!data) return;
+
+        if (data.status === "Reserved") {
+    if (data.user !== currentUser && role !== "admin") {
+      alert("❌ You are not allowed to cancel this reservation.");
+      return;
+    }
+
+    // Allow admin or owner to cancel
+    await update(ref(db, `parking/zones/zone${zone}`), {
+      "reservation/status": "Available",
+      "reservation/user": "",
+      "reservation/slot": "",
+      "reservation/expiresAt": "",
+      [`slots/${data.slot}`]: "available"
+    });
+
+  } else {
+    const username = localStorage.getItem("userToken");
+    const slot = prompt("Enter desired slot number:");
+    if (!slot || isNaN(slot)) return alert("Invalid slot number.");
+          
+          window.location.href = `/pages/dashboard pages/payment.html?zone=zone${zone}&slot=${slot}&user=${username}`;
+
+          const now = new Date();
+          const expires = new Date(now.getTime() + 15 * 60 * 1000); // 15 minutes
+          update(ref(db, `parking/zones/zone${zone}`), {
+            reservation: {
+              status: "Reserved",
+              user: username,
+              slot: slot,
+              expiresAt: expires.toISOString()
+            },
+             [`slots/${slot}`]: "reserved"
+          });
+        }
+      });
+    });
+
+    // Summary renderer
+    function renderSummary() {
+      reservationTable.innerHTML = "";
+      zones.forEach(async (zone) => {
+        const zoneRef = ref(db, `parking/zones/zone${zone}/reservation`);
+        const snap = await get(zoneRef);
+        const data = snap.val();
+        if (!data) return;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>Zone ${zone}</td>
+          <td>${data.status}</td>
+          <td>${data.user || "-"}</td>
+          <td>${data.slot || "-"}</td>
+          <td>${data.expiresAt ? formatTime(data.expiresAt) : "-"}</td>
+        `;
+        reservationTable.appendChild(tr);
+      });
+    }
+    
+
+  </script>
+</body>
+
+</html>
